@@ -1,70 +1,78 @@
-#include <cmath>
-#include <cstdio>
-#include <vector>
+#include<bits/stdc++.h>
 using namespace std;
 
 typedef vector<int> vi;
 
-class SegmentTree {         
-private: vi st, A;         
-  int n;
-  int left (int p) { return p << 1; }     
-  int right(int p) { return (p << 1) + 1; }
+class SegmentTree {
+private:
+	vi st, A;
+	int n;
+	int left(int p) { return p << 1;}
+	int right(int p) { return (p << 1) + 1;}
 
-  void build(int p, int L, int R) {      
-    if (L == R)                         
-      st[p] = L;                       
-    else {                            
-      build(left(p) , L              , (L + R) / 2);
-      build(right(p), (L + R) / 2 + 1, R          );
-      int p1 = st[left(p)], p2 = st[right(p)];
-      st[p] = (A[p1] <= A[p2]) ? p1 : p2;
-  } }
+	void build(int p, int l, int r) {
+		if (l == r)
+			st[p] = l;
+		else {
+			build(left(p), l, (l+r)/2);
+			build(right(p), (l+r)/2+1, r);
+			int p1 = st[left(p)], p2 = st[right(p)];
+			st[p] = (A[p1] <= A[p2]) ? p1 : p2;
+		}
+	}
 
-  int rmq(int p, int L, int R, int i, int j) {
-    if (i >  R || j <  L) return -1;
-    if (L >= i && R <= j) return st[p];               
+	int rmq(int p, int l, int r, int i, int j) {
+		if(i > r || j < l)
+			return -1;
+		if(l >= i && r <= j)
+			return st[p];
 
-    int p1 = rmq(left(p) , L              , (L+R) / 2, i, j);
-    int p2 = rmq(right(p), (L+R) / 2 + 1, R          , i, j);
+		int p1 = rmq(left(p), l, (l+r)/2, i, j);
+		int p2 = rmq(right(p), (l+r)/2+1, r, i, j);
+		if(p1 == -1)
+			return p2;
+		if(p2 == -1)
+			return p1;
+		return (A[p1] <= A[p2]) ? p1 : p2;
+	}
 
-    if (p1 == -1) return p2;   
-    if (p2 == -1) return p1;  
-    return (A[p1] <= A[p2]) ? p1 : p2; }          
+	int update_point(int p, int l, int r, int idx, int new_value) {
+		int i = idx, j = idx;
+		if(i > r || j < l)
+			return st[p];
+		
+		if(l == i && r == j) {
+			A[i] = new_value;
+			return st[p] = l;
+		}
 
-  int update_point(int p, int L, int R, int idx, int new_value) {
-    int i = idx, j = idx;
+		int p1 = update_point(left(p), l, (l+r)/2, idx, new_value);
+		int p2 = update_point(right(p), (l+r)/2 + 1, r, idx, new_value);
 
-    if (i > R || j < L)
-      return st[p];
-
-    if (L == i && R == j) {
-      A[i] = new_value; 
-      return st[p] = L;
-    }
-    int p1, p2;
-    p1 = update_point(left(p) , L              , (L + R) / 2, idx, new_value);
-    p2 = update_point(right(p), (L + R) / 2 + 1, R          , idx, new_value);
-
-    return st[p] = (A[p1] <= A[p2]) ? p1 : p2;
-  }
+		return st[p] = (A[p1] <= A[p2]) ? p1 : p2;
+	}
 
 public:
-  SegmentTree(const vi &_A) {
-    A = _A; n = (int)A.size();              
-    st.assign(4 * n, 0);            
-    build(1, 0, n - 1);            
-  }
+	SegmentTree(const vi &_A) {
+		A = _A;
+		n = (int)A.size();
+		st.assign(4*n, 0);
+		build(1, 0, n-1);
+	}
 
-  int rmq(int i, int j) { return rmq(1, 0, n - 1, i, j); }   
+	int rmq(int i, int j) {
+		return rmq(1, 0, n-1, i, j);
+	}
 
-  int update_point(int idx, int new_value) {
-    return update_point(1, 0, n - 1, idx, new_value); }
+	int update(int idx, int new_value) {
+		return update_point(1, 0, n-1, idx, new_value);
+	}
+
 };
-  
+
 int main() {
-  int arr[] = { 18, 17, 13, 19, 15, 11, 20 };          
-  vi A(arr, arr + 7);                      
+  int arr[] = { 18, 17, 13, 19, 15, 11, 20 };         // the original array
+  vi A(arr, arr + 7);                      // copy the contents to a vector
   SegmentTree st(A);
 
   printf("              idx    0, 1, 2, 3, 4,  5, 6\n");
@@ -78,7 +86,7 @@ int main() {
 
   printf("              idx    0, 1, 2, 3, 4,  5, 6\n");
   printf("Now, modify A into {18,17,13,19,15,100,20}\n");
-  st.update_point(5, 100);                    // update A[5] from 11 to 100
+  st.update(5, 100) ;
   printf("These values do not change\n");
   printf("RMQ(1, 3) = %d\n", st.rmq(1, 3));                            // 2
   printf("RMQ(3, 4) = %d\n", st.rmq(3, 4));                            // 4
