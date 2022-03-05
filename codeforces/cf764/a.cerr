@@ -1,0 +1,3 @@
+/usr/bin/ld: ./a: _ZSt3cin: invalid version 3 (max 0)
+/usr/bin/ld: ./a: error adding symbols: bad value
+collect2: error: ld returned 1 exit status
